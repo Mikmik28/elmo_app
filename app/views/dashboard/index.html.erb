@@ -1,0 +1,186 @@
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+  <!-- User Overview Card -->
+  <div class="lg:col-span-2">
+    <div class="bg-white rounded-lg shadow-md p-6">
+      <h2 class="text-2xl font-semibold text-gray-800 mb-4">
+        Welcome back, <%= @user.first_name %>!
+      </h2>
+      
+      <div class="grid grid-cols-2 gap-4 mb-6">
+        <div class="bg-blue-50 p-4 rounded-lg">
+          <h3 class="text-sm font-medium text-blue-600">Credit Score</h3>
+          <p class="text-2xl font-bold text-blue-700"><%= @credit_score %></p>
+          <p class="text-xs text-blue-500">
+            <%= case @credit_score
+                when 750..Float::INFINITY then "Excellent"
+                when 700..749 then "Very Good" 
+                when 650..699 then "Good"
+                when 600..649 then "Fair"
+                when 550..599 then "Poor"
+                else "Very Poor"
+                end %>
+          </p>
+        </div>
+        
+        <div class="bg-green-50 p-4 rounded-lg">
+          <h3 class="text-sm font-medium text-green-600">Available Credit</h3>
+          <p class="text-2xl font-bold text-green-700">₱<%= number_with_delimiter(@available_credit.to_i) %></p>
+          <p class="text-xs text-green-500">You can borrow up to this amount</p>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-2 gap-4">
+        <div>
+          <h4 class="text-sm font-medium text-gray-600">Total Outstanding</h4>
+          <p class="text-lg font-semibold text-gray-800">₱<%= number_with_delimiter(@total_outstanding.to_i) %></p>
+        </div>
+        
+        <div>
+          <h4 class="text-sm font-medium text-gray-600">Total Loans</h4>
+          <p class="text-lg font-semibold text-gray-800"><%= @stats[:loans_count] %></p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Quick Actions -->
+  <div>
+    <div class="bg-white rounded-lg shadow-md p-6">
+      <h3 class="text-lg font-semibold text-gray-800 mb-4">Quick Actions</h3>
+      
+      <div class="space-y-3">
+        <%= link_to new_loan_path, class: "w-full bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 flex items-center justify-center" do %>
+          <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+          </svg>
+          Apply for Loan
+        <% end %>
+        
+        <%= link_to loans_path, class: "w-full bg-gray-100 text-gray-700 py-2 px-4 rounded-lg hover:bg-gray-200 flex items-center justify-center" do %>
+          <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+          </svg>
+          View All Loans
+        <% end %>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Active Loans Section -->
+<% if @active_loans.any? %>
+<div class="mt-8">
+  <h3 class="text-xl font-semibold text-gray-800 mb-4">Active Loans</h3>
+  
+  <div class="bg-white rounded-lg shadow-md overflow-hidden">
+    <div class="overflow-x-auto">
+      <table class="min-w-full divide-y divide-gray-200">
+        <thead class="bg-gray-50">
+          <tr>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Loan</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Amount</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Due Date</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Remaining</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+          </tr>
+        </thead>
+        <tbody class="bg-white divide-y divide-gray-200">
+          <% @active_loans.each do |loan| %>
+            <tr>
+              <td class="px-6 py-4 whitespace-nowrap">
+                <div class="text-sm font-medium text-gray-900">#<%= loan.id %></div>
+                <div class="text-sm text-gray-500"><%= loan.loan_type.humanize %></div>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                ₱<%= number_with_delimiter(loan.amount.to_i) %>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                <%= loan.due_date.strftime("%B %d, %Y") %>
+                <% if loan.due_date < Date.current %>
+                  <span class="text-red-600 text-xs">(Overdue)</span>
+                <% elsif loan.due_date <= Date.current + 3.days %>
+                  <span class="text-orange-600 text-xs">(Due Soon)</span>
+                <% end %>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                ₱<%= number_with_delimiter(loan.remaining_balance.to_i) %>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap">
+                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full
+                  <%= case loan.status
+                      when 'approved' then 'bg-yellow-100 text-yellow-800'
+                      when 'disbursed' then 'bg-blue-100 text-blue-800'
+                      when 'overdue' then 'bg-red-100 text-red-800'
+                      else 'bg-gray-100 text-gray-800'
+                      end %>">
+                  <%= loan.status.humanize %>
+                </span>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                <%= link_to "View", loan_path(loan), class: "text-blue-600 hover:text-blue-900 mr-3" %>
+                <% if loan.disbursed? %>
+                  <%= link_to "Pay", new_loan_payment_path(loan), class: "text-green-600 hover:text-green-900" %>
+                <% end %>
+              </td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+<% end %>
+
+<!-- Recent Payments Section -->
+<% if @recent_payments.any? %>
+<div class="mt-8">
+  <h3 class="text-xl font-semibold text-gray-800 mb-4">Recent Payments</h3>
+  
+  <div class="bg-white rounded-lg shadow-md overflow-hidden">
+    <div class="overflow-x-auto">
+      <table class="min-w-full divide-y divide-gray-200">
+        <thead class="bg-gray-50">
+          <tr>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Loan</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Amount</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Method</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+          </tr>
+        </thead>
+        <tbody class="bg-white divide-y divide-gray-200">
+          <% @recent_payments.each do |payment| %>
+            <tr>
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                <%= payment.paid_at&.strftime("%m/%d/%Y") || payment.created_at.strftime("%m/%d/%Y") %>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                #<%= payment.loan_id %>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                ₱<%= number_with_delimiter(payment.amount.to_i) %>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                <%= payment.payment_method.humanize %>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap">
+                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full
+                  <%= case payment.status
+                      when 'completed' then 'bg-green-100 text-green-800'
+                      when 'pending' then 'bg-yellow-100 text-yellow-800'
+                      when 'processing' then 'bg-blue-100 text-blue-800'
+                      when 'failed' then 'bg-red-100 text-red-800'
+                      else 'bg-gray-100 text-gray-800'
+                      end %>">
+                  <%= payment.status.humanize %>
+                </span>
+              </td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+<% end %>
