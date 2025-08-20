@@ -10,7 +10,7 @@ This document provides step-by-step instructions for implementing the eLMO (Loan
 
 eLMO is a **digital microfinance platform** that provides:
 
-1. **Quick Loans**: 1-60 day terms with daily interest rates
+1. **Three-Tier Loans**: Micro (1-60 days, 0.5% daily), Extended (3-6 months, 3.49% monthly), Long-term (9-12 months, 3% monthly)
 2. **Smart Credit Building**: Automatic credit limit increases based on payment history
 3. **Flexible Payments**: Multiple payment methods (GCash, PayMaya, Bank Transfer)
 4. **Referral System**: User acquisition through referral codes and bonuses
@@ -18,10 +18,10 @@ eLMO is a **digital microfinance platform** that provides:
 
 ### Business Model
 
-- **Revenue Source**: Daily interest charges (0.5% base rate)
+- **Revenue Source**: Three-tier interest structure - Daily (0.5% for 1-60 days), Extended (3.49% monthly for 3-6 months), Long-term (3% monthly for 9-12 months)
 - **Target Market**: Underbanked individuals needing quick access to credit
 - **Growth Strategy**: Referral-based user acquisition with credit limit gamification
-- **Competitive Edge**: Faster approval, flexible terms, automatic credit increases
+- **Competitive Edge**: Faster approval, three-tier loan system, automatic credit increases
 
 ## 🛠 Technical Implementation Roadmap
 
@@ -132,7 +132,7 @@ rails generate migration AddFieldsToUsers first_name:string last_name:string pho
 **Loans Migration**:
 
 ```bash
-rails generate model Loan user:references amount:decimal interest_rate:decimal total_amount_due:decimal term_days:integer due_date:date status:string purpose:string loan_type:string daily_penalty_rate:decimal approval_metadata:json disbursement_method:string disbursement_account:string approved_at:datetime disbursed_at:datetime paid_at:datetime
+rails generate model Loan user:references amount:decimal interest_rate:decimal total_amount_due:decimal term_days:integer due_date:date status:string purpose:string loan_type:string loan_product:string daily_penalty_rate:decimal approval_metadata:json disbursement_method:string disbursement_account:string approved_at:datetime disbursed_at:datetime paid_at:datetime
 ```
 
 **Payments Migration**:
@@ -170,11 +170,14 @@ Key methods to implement:
 
 Key methods to implement:
 
-- `calculate_total_amount_due` (amount + interest calculation)
+- `calculate_total_amount_due` (three-tier calculation: daily vs monthly interest based on loan_product and term_days)
 - `set_due_date` (current_date + term_days)
+- `determine_loan_product` (auto-assign: ≤60 days = micro, 61-180 = extended, 270/365 days = longterm)
+- `validate_longterm_terms` (ensure long-term loans use only allowed terms: 270, 365 days)
 - `days_overdue` and `penalty_amount` (overdue calculations)
 - `approve!`, `disburse!`, `mark_as_paid!` (state transitions)
 - Status enum: `pending`, `approved`, `disbursed`, `paid`, `overdue`, `defaulted`
+- Loan product enum: `micro` (1-60 days), `extended` (61-180 days), `longterm` (270, 365 days only)
 
 #### 3.3 Implement Payment Model
 
@@ -200,15 +203,18 @@ Implement scoring factors:
 - **Payment History Score**: Percentage of on-time payments
 - **Account Age Score**: Tenure with the platform
 - **Referral Score**: Bonus for being referred
+- **Loan Product Risk**: Long-term loans require higher credit scores and payment history
 
 #### 4.2 Loan Approval Logic
 
-Implement `loan_approval_decision(loan_amount)` method that returns:
+Implement `loan_approval_decision(loan_amount, term_days)` method that returns:
 
 - Approval decision (boolean)
 - Credit score
 - Recommended amount
-- Interest rate
+- Interest rate (daily/monthly based on term and product tier)
+- Loan product assignment (micro/extended/longterm)
+- Term validation for long-term products (270 or 365 days only)
 - Approval/rejection reasons
 
 ### Step 5: Background Jobs (Week 6)

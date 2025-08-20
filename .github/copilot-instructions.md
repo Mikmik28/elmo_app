@@ -2,7 +2,7 @@
 
 ## Architecture Overview
 
-eLMO is a **Rails 8 microfinance platform** providing quick loans (₱1K-₱50K, 1-60 days) with gamified credit building. Built on modern Rails defaults with PostgreSQL, Solid Queue/Cache/Cable, and Hotwire.
+eLMO is a **Rails 8 microfinance platform** providing three-tier loan products: Micro loans (₱1K-₱50K, 1-60 days, 0.5% daily), Extended loans (3-6 months, 3.49% monthly), and Long-term loans (9-12 months only, 3% monthly) with gamified credit building. Built on modern Rails defaults with PostgreSQL, Solid Queue/Cache/Cable, and Hotwire.
 
 ### Core Business Flow
 
@@ -13,7 +13,7 @@ eLMO is a **Rails 8 microfinance platform** providing quick loans (₱1K-₱50K,
 ### Key Domain Models & Relationships
 
 - `User` (has referral system, credit limits, payment history scoring)
-- `Loan` (state machine: pending→approved→disbursed→paid/overdue/defaulted)
+- `Loan` (three-tier products: micro/extended/longterm with different interest calculations and term restrictions, state machine: pending→approved→disbursed→paid/overdue/defaulted)
 - `Payment` (tracks partial/full payments with external gateway integration)
 - `PromoCode` (referral bonuses, discount mechanics)
 
@@ -48,13 +48,17 @@ rails db:migrate # Standard migrations
 
 ### Financial Calculations
 
-- **Interest**: Simple interest using `amount * (interest_rate/100) * (term_days/365)`
-- **Penalties**: Daily penalty rate (0.5%) applied to overdue amounts
+- **Micro Interest**: Simple interest using `amount * (0.5/100) * (term_days/365)` for 1-60 day loans
+- **Extended Interest**: Monthly interest using `amount * (3.49/100) * (term_days/30.44)` for 61-180 day loans
+- **Long-term Interest**: Monthly interest using `amount * (3/100) * (term_days/30.44)` for 270/365 day loans only
+- **Term Validation**: Long-term loans restricted to 270 days (9 months) or 365 days (12 months) only
+- **Loan Product Assignment**: Auto-determined by term_days (≤60 = micro, 61-180 = extended, 270/365 = longterm)
+- **Penalties**: Daily penalty rate (0.5%) applied to overdue amounts regardless of loan product
 - **Credit scoring**: Multi-factor algorithm in `CreditScoringService` (payment history 35%, utilization 30%, etc.)
 
 ### Business Logic Services
 
-- `CreditScoringService.new(user).loan_approval_decision(amount)` - Returns approval status, recommended amount, interest rate
+- `CreditScoringService.new(user).loan_approval_decision(amount, term_days)` - Returns approval status, recommended amount, interest rate, loan product, term validation
 - Use service classes for complex business logic, keep models focused on data integrity
 
 ### Payment Integration Points
@@ -114,9 +118,11 @@ rails db:migrate # Standard migrations
 
 ### Adding New Loan Types
 
-1. Update `loan_type` enum in `Loan` model
-2. Adjust scoring factors in `CreditScoringService`
-3. Add business rules in `can_be_approved?`
+1. Update `loan_type` enum in `Loan` model (personal, emergency, education, business)
+2. Add `loan_product` enum for micro/extended/longterm products
+3. Implement term validation for long-term products (only 270, 365 days allowed)
+4. Adjust scoring factors in `CreditScoringService` for different term lengths and risk levels
+5. Add business rules in `can_be_approved?` and three-tier interest calculation logic
 
 ### Payment Gateway Integration
 

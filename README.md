@@ -9,7 +9,7 @@ eLMO (Enhanced Loan More Operations) is a modern digital lending platform built 
 ### 🎯 Key Features
 
 - **Instant Loan Approval**: AI-powered credit scoring for rapid decision-making
-- **Flexible Terms**: Loan periods from 1-60 days with competitive daily interest rates
+- **Three-Tier Loan Products**: Micro (1-60 days, 0.5% daily), Extended (3-6 months, 3.49% monthly), and Long-term (9-12 months, 3% monthly)
 - **Dynamic Credit Limits**: Starting at ₱5,000, expandable up to ₱50,000 based on payment history
 - **Smart Credit Growth**: Automatic credit limit increases for users who borrow and repay ≥₱5,000 within 2 months
 - **Referral System**: Integrated promo codes and referral rewards
@@ -56,19 +56,25 @@ eLMO (Enhanced Loan More Operations) is a modern digital lending platform built 
 
 ### Interest Rate Structure
 
-- **Base Rate**: 0.5% daily (following Tala's model)
-- **Penalty Rate**: 0.5% daily for overdue amounts
+- **Micro Loans (1-60 days)**: 0.5% daily interest rate
+- **Extended Loans (61-180 days)**: 3.49% monthly interest rate
+- **Long-term Loans (9-12 months only)**: 3% monthly interest rate
+- **Penalty Rate**: 0.5% daily for overdue amounts (all loan types)
 - **No Hidden Fees**: Transparent pricing with upfront calculations
 
 ### Competitive Analysis
 
-| Feature          | eLMO       | Billease   | Tala       |
-| ---------------- | ---------- | ---------- | ---------- |
-| Base Interest    | 0.5% daily | 3% + 3.49% | 0.5% daily |
-| Max Term         | 60 days    | 6 months   | 60 days    |
-| Credit Limit     | ₱5K-₱50K   | Varies     | Varies     |
-| Auto-Increase    | ✅ Yes     | ❌ No      | ❌ No      |
-| Referral Program | ✅ Yes     | Limited    | Limited    |
+| Feature           | eLMO          | Billease           | Tala       |
+| ----------------- | ------------- | ------------------ | ---------- |
+| Micro Rate        | 0.5% daily    | N/A                | 0.5% daily |
+| Extended Rate     | 3.49% monthly | 3% + 3.49% monthly | N/A        |
+| Long-term Rate    | 3% monthly    | N/A                | N/A        |
+| Max Term          | 12 months     | 6 months           | 60 days    |
+| Term Options      | Fixed tiers   | Flexible           | Flexible   |
+| Credit Limit      | ₱5K-₱50K      | Varies             | Varies     |
+| Auto-Increase     | ✅ Yes        | ❌ No              | ❌ No      |
+| Three-Tier System | ✅ Yes        | ❌ No              | ❌ No      |
+| Referral Program  | ✅ Yes        | Limited            | Limited    |
 
 ## 🚀 Quick Start
 
