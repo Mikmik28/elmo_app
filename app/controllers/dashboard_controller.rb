@@ -1,4 +1,8 @@
 class DashboardController < ApplicationController
+  # Constants for loan calculations
+  MICRO_LOAN_TERM_DAYS = 60
+  DAYS_PER_MONTH = 30.0
+  
   def index
     @user = current_user
     @active_loans = @user.active_loans.includes(:payments)
@@ -25,7 +29,7 @@ class DashboardController < ApplicationController
 
   def calculate_on_time_payments
     total_payments = @user.payments.completed.count
-    return 100 if total_payments.zero? # Neutral score for new users with no payment history
+    return nil if total_payments.zero? # No payment history, return nil to indicate 'no data'
 
     on_time = @user.payments.completed
                    .joins(:loan)
@@ -46,12 +50,12 @@ class DashboardController < ApplicationController
     # Calculate payment amount based on loan term and type
     # Convert term_days to appropriate payment periods
     if next_loan.term_days && next_loan.term_days > 0
-      # For loans <= 60 days, use the full balance (micro loans)
-      if next_loan.term_days <= 60
+      # For loans <= MICRO_LOAN_TERM_DAYS, use the full balance (micro loans)
+      if next_loan.term_days <= MICRO_LOAN_TERM_DAYS
         next_loan.remaining_balance.round
       else
         # For longer terms, calculate monthly payments
-        term_months = (next_loan.term_days / 30.0).ceil
+        term_months = (next_loan.term_days / DAYS_PER_MONTH).ceil
         (next_loan.remaining_balance / term_months).round
       end
     else

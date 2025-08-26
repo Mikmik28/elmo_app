@@ -135,7 +135,7 @@
                             <% if loan.term_days % 30 == 0 %>
                               <%= "#{loan.term_days / 30}-month term" %>
                             <% else %>
-                              <%= "#{loan.term_days}-day term" %>
+                              <%= "#{number_with_precision(loan.term_days / 30.0, precision: 2)}-month term" %>
                             <% end %>
                           <% else %>
                             <span class="text-gray-400">Term not specified</span>
@@ -156,7 +156,11 @@
                     <% end %>
                   </td>
                   <td class="px-6 py-4">
-                    <% progress = ((loan.amount - loan.remaining_balance) / loan.amount * 100).round %>
+                    <% if loan.amount.to_f == 0 %>
+                      <% progress = 0 %>
+                    <% else %>
+                      <% progress = ((loan.amount - loan.remaining_balance) / loan.amount.to_f * 100).round %>
+                    <% end %>
                     <div class="flex items-center">
                       <div class="w-full bg-gray-200 rounded-full h-2 mr-2">
                         <div class="<%= progress >= 80 ? 'bg-green-600' : progress >= 60 ? 'bg-blue-600' : 'bg-orange-600' %> h-2 rounded-full" style="width: <%= progress %>%"></div>
@@ -328,7 +332,7 @@
         <div>
           <div class="flex justify-between items-center mb-2">
             <span class="text-sm font-medium text-gray-700">Credit Utilization</span>
-            <% utilization = @available_credit > 0 ? ((@total_outstanding / @available_credit) * 100).round : 0 %>
+            <% utilization = @available_credit.to_f > 0 ? ((@total_outstanding.to_f / @available_credit.to_f) * 100).round : 0 %>
             <span class="text-sm font-bold text-blue-600"><%= utilization %>%</span>
           </div>
           <div class="w-full bg-gray-200 rounded-full h-2">
