@@ -27,8 +27,7 @@ class DashboardController < ApplicationController
     return 0 if total_payments.zero? # Neutral score for new users with no payment history
 
     on_time = @user.payments.completed
-                   .joins(:loan)
-                   .where("payments.paid_at <= loans.due_date")
+                   .where("payments.paid_at <= payments.due_date")
                    .count
 
     ((on_time.to_f / total_payments) * 100).round
