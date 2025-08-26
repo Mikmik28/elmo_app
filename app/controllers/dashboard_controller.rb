@@ -80,13 +80,13 @@ class DashboardController < ApplicationController
     # For now, return a simple calculation based on recent payment behavior
     recent_payments = @user.payments.completed.where("paid_at >= ?", 30.days.ago).count
     return 0 if recent_payments.zero?
-    
+
     # Simple heuristic: +2 points per on-time payment in last 30 days
     on_time_recent = @user.payments.completed
                           .joins(:loan)
                           .where("payments.paid_at >= ? AND payments.paid_at <= loans.due_date", 30.days.ago)
                           .count
-    
+
     on_time_recent * 2
   end
 end
