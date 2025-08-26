@@ -20,7 +20,7 @@ class DashboardController < ApplicationController
 
   def calculate_on_time_payments
     total_payments = @user.payments.completed.count
-    return 95 if total_payments.zero? # Default good score for new users
+    return 0 if total_payments.zero? # Neutral score for new users with no payment history
 
     on_time = @user.payments.completed
                    .joins(:loan)
