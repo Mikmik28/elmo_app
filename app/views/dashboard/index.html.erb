@@ -1,23 +1,10 @@
-<%= render 'dashboard/welcome_section', user: @user %>
+<%= render 'welcome_section', user: @user %>
+<%= render 'metrics_cards', credit_score: @credit_score, available_credit: @available_credit, total_outstanding: @total_outstanding, stats: @stats %>
 
-<%= render 'dashboard/metrics_cards', 
-    credit_score: @credit_score, 
-    available_credit: @available_credit, 
-    total_outstanding: @total_outstanding, 
-    stats: @stats %>
-
-<!-- Main Content Grid -->
 <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-  <!-- Left Column - Active Loans & Recent Activity -->
   <div class="lg:col-span-2 space-y-8">
-    <%= render 'dashboard/active_loans', active_loans: @active_loans %>
-    <%= render 'dashboard/recent_payments', recent_payments: @recent_payments %>
+    <%= render 'active_loans', active_loans: @active_loans %>
+    <%= render 'recent_payments', recent_payments: @recent_payments %>
   </div>
-
-  <%= render 'dashboard/sidebar', 
-      active_loans: @active_loans, 
-      priority_loan: @priority_loan, 
-      stats: @stats, 
-      available_credit: @available_credit, 
-      total_outstanding: @total_outstanding %>
+  <%= render 'sidebar', active_loans: @active_loans, priority_loan: @priority_loan, stats: @stats, available_credit: @available_credit, total_outstanding: @total_outstanding %>
 </div>

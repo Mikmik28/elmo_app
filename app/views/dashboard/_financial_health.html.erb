@@ -7,13 +7,25 @@
     <div>
       <div class="flex justify-between items-center mb-2">
         <span class="text-sm font-medium text-gray-700">Payment History</span>
-        <span class="text-sm font-bold text-green-600"><%= stats[:on_time_payments] %>%</span>
+        <% if stats[:on_time_payments] %>
+          <span class="text-sm font-bold text-green-600"><%= stats[:on_time_payments] %>%</span>
+        <% else %>
+          <span class="text-sm font-medium text-gray-500">No history</span>
+        <% end %>
       </div>
       <div class="w-full bg-gray-200 rounded-full h-2">
-        <div class="bg-green-500 h-2 rounded-full" style="width: <%= stats[:on_time_payments] %>%"></div>
+        <% if stats[:on_time_payments] %>
+          <div class="bg-green-500 h-2 rounded-full" style="width: <%= stats[:on_time_payments] %>%"></div>
+        <% else %>
+          <div class="bg-gray-300 h-2 rounded-full" style="width: 0%"></div>
+        <% end %>
       </div>
       <p class="text-xs text-gray-500 mt-1">
-        <%= stats[:on_time_payments] >= 95 ? "Excellent" : stats[:on_time_payments] >= 80 ? "Good" : "Needs improvement" %> payment record
+        <% if stats[:on_time_payments] %>
+          <%= stats[:on_time_payments] >= 95 ? "Excellent" : stats[:on_time_payments] >= 80 ? "Good" : "Needs improvement" %> payment record
+        <% else %>
+          No payment history yet
+        <% end %>
       </p>
     </div>
     
