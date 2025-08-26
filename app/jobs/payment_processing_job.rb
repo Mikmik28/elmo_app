@@ -10,9 +10,9 @@ class PaymentProcessingJob < ApplicationJob
 
     if result[:success]
       Rails.logger.info "Payment #{payment.id} processing initiated: #{result[:message]}"
-      
+
       # For automatic payments, try to complete immediately
-      if payment.payment_metadata&.dig('automatic_payment')
+      if payment.payment_metadata&.dig("automatic_payment")
         # Simulate processing delay for automatic payments
         CompleteAutomaticPaymentJob.set(wait: 30.seconds).perform_later(payment.id)
       end

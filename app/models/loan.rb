@@ -16,27 +16,27 @@ class Loan < ApplicationRecord
 
   # Enums
   enum :status, {
-    pending: 'pending',
-    approved: 'approved', 
-    disbursed: 'disbursed',
-    paid: 'paid',
-    overdue: 'overdue',
-    defaulted: 'defaulted',
-    rejected: 'rejected'
+    pending: "pending",
+    approved: "approved",
+    disbursed: "disbursed",
+    paid: "paid",
+    overdue: "overdue",
+    defaulted: "defaulted",
+    rejected: "rejected"
   }
 
   enum :loan_type, {
-    personal: 'personal',
-    emergency: 'emergency', 
-    education: 'education',
-    business: 'business'
+    personal: "personal",
+    emergency: "emergency",
+    education: "education",
+    business: "business"
   }
 
   # Scopes
-  scope :active, -> { where(status: ['approved', 'disbursed']) }
-  scope :overdue, -> { where('due_date < ? AND status IN (?)', Date.current, ['disbursed']) }
-  scope :due_today, -> { where(due_date: Date.current, status: 'disbursed') }
-  scope :due_soon, -> { where(due_date: Date.current..3.days.from_now, status: 'disbursed') }
+  scope :active, -> { where(status: [ "approved", "disbursed" ]) }
+  scope :overdue, -> { where("due_date < ? AND status IN (?)", Date.current, [ "disbursed" ]) }
+  scope :due_today, -> { where(due_date: Date.current, status: "disbursed") }
+  scope :due_soon, -> { where(due_date: Date.current..3.days.from_now, status: "disbursed") }
 
   # Instance methods
   def days_overdue
@@ -68,69 +68,69 @@ class Loan < ApplicationRecord
 
   def approve!
     return false unless can_be_approved?
-    
+
     update!(
-      status: 'approved',
+      status: "approved",
       approved_at: Time.current,
       approval_metadata: {
-        approved_by: 'system',
+        approved_by: "system",
         user_credit_score: user.credit_score,
         user_credit_limit: user.credit_limit,
-        approval_algorithm_version: '1.0'
+        approval_algorithm_version: "1.0"
       }
     )
   end
 
   def disburse!(disbursement_method, disbursement_account)
     return false unless approved?
-    
+
     update!(
-      status: 'disbursed',
+      status: "disbursed",
       disbursed_at: Time.current,
       disbursement_method: disbursement_method,
       disbursement_account: disbursement_account
     )
-    
+
     # Create initial payment record for tracking
     payments.create!(
       user: user,
       amount: 0,
-      payment_method: 'initial',
-      status: 'pending'
+      payment_method: "initial",
+      status: "pending"
     )
   end
 
   def mark_as_paid!
     return false unless disbursed?
-    
+
     update!(
-      status: 'paid',
+      status: "paid",
       paid_at: Time.current
     )
-    
+
     # Update user's credit limit based on successful payment
     user.increment!(:credit_limit, amount * 0.1) # 10% increase
   end
 
   def mark_as_overdue!
     return false unless disbursed? && Date.current > due_date
-    
-    update!(status: 'overdue')
-    
+
+    update!(status: "overdue")
+
     # Decrease user's credit score
-    new_score = [user.credit_score - 50, 300].max
+    new_score = [ user.credit_score - 50, 300 ].max
     user.update!(credit_score: new_score)
   end
 
   def mark_as_defaulted!
     return false unless overdue? && days_overdue > 90
-    
-    update!(status: 'defaulted')
-    
+
+    update!(status: "defaulted")
+
     # Severely impact credit score and suspend user
     user.update!(
       credit_score: 300,
-      status: 'suspended'
+      status: "suspended"
     )
   end
 
@@ -146,7 +146,7 @@ class Loan < ApplicationRecord
 
   def calculate_total_amount_due
     return unless amount.present? && interest_rate.present? && term_days.present?
-    
+
     # Simple interest calculation
     interest_amount = amount * (interest_rate / 100.0) * (term_days / 365.0)
     self.total_amount_due = amount + interest_amount
@@ -154,7 +154,7 @@ class Loan < ApplicationRecord
 
   def set_due_date
     return unless term_days.present?
-    
+
     self.due_date = (created_at || Time.current) + term_days.days
   end
 

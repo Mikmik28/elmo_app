@@ -1,13 +1,13 @@
 class LoansController < ApplicationController
-  before_action :ensure_account_verified, except: [:index, :show]
-  before_action :ensure_kyc_verified, only: [:new, :create]
-  before_action :set_loan, only: [:show, :edit, :update, :destroy, :approve, :disburse]
+  before_action :ensure_account_verified, except: [ :index, :show ]
+  before_action :ensure_kyc_verified, only: [ :new, :create ]
+  before_action :set_loan, only: [ :show, :edit, :update, :destroy, :approve, :disburse ]
 
   def index
     @loans = current_user.loans.order(created_at: :desc)
                         .page(params[:page])
                         .per(10)
-    
+
     @loans = @loans.where(status: params[:status]) if params[:status].present?
   end
 
@@ -17,7 +17,7 @@ class LoansController < ApplicationController
 
   def new
     unless current_user.can_apply_for_loan?
-      redirect_to loans_path, alert: 'You are not eligible to apply for a new loan at this time.'
+      redirect_to loans_path, alert: "You are not eligible to apply for a new loan at this time."
       return
     end
 
@@ -40,8 +40,8 @@ class LoansController < ApplicationController
     if @loan.save
       # Queue loan for approval processing
       LoanApprovalJob.perform_later(@loan.id)
-      
-      redirect_to @loan, notice: 'Loan application submitted successfully. You will be notified of the decision shortly.'
+
+      redirect_to @loan, notice: "Loan application submitted successfully. You will be notified of the decision shortly."
     else
       @available_amount = current_user.eligible_loan_amount
       render :new, status: :unprocessable_entity
@@ -54,9 +54,9 @@ class LoansController < ApplicationController
 
     if @loan.can_be_approved?
       @loan.approve!
-      redirect_to @loan, notice: 'Loan approved successfully.'
+      redirect_to @loan, notice: "Loan approved successfully."
     else
-      redirect_to @loan, alert: 'Loan cannot be approved at this time.'
+      redirect_to @loan, alert: "Loan cannot be approved at this time."
     end
   end
 
@@ -66,14 +66,14 @@ class LoansController < ApplicationController
 
     if @loan.approved? && disburse_params_valid?
       LoanDisbursementJob.perform_later(
-        @loan.id, 
-        params[:disbursement_method], 
+        @loan.id,
+        params[:disbursement_method],
         params[:disbursement_account]
       )
-      
-      redirect_to @loan, notice: 'Loan disbursement initiated.'
+
+      redirect_to @loan, notice: "Loan disbursement initiated."
     else
-      redirect_to @loan, alert: 'Cannot disburse loan. Check loan status and disbursement details.'
+      redirect_to @loan, alert: "Cannot disburse loan. Check loan status and disbursement details."
     end
   end
 
@@ -89,7 +89,7 @@ class LoansController < ApplicationController
 
   def apply_promo_code(code)
     promo = PromoCode.find_by(code: code.upcase)
-    return { success: false, message: 'Invalid promo code' } unless promo
+    return { success: false, message: "Invalid promo code" } unless promo
 
     promo.apply_to_loan(@loan)
   end

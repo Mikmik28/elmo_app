@@ -7,64 +7,64 @@ class PaymentProcessingService
   end
 
   def process_payment
-    return { success: false, message: 'Payment not in pending status' } unless payment.pending?
+    return { success: false, message: "Payment not in pending status" } unless payment.pending?
 
-    payment.update!(status: 'processing')
+    payment.update!(status: "processing")
 
     case payment.payment_method
-    when 'gcash'
+    when "gcash"
       process_gcash_payment
-    when 'paymaya'
+    when "paymaya"
       process_paymaya_payment
-    when 'bank_transfer'
+    when "bank_transfer"
       process_bank_transfer
-    when 'cash'
+    when "cash"
       process_cash_payment
-    when 'online_banking'
+    when "online_banking"
       process_online_banking
     else
-      { success: false, message: 'Unsupported payment method' }
+      { success: false, message: "Unsupported payment method" }
     end
   end
 
   def process_webhook(webhook_data)
     # Process webhook from payment gateway
     case payment.payment_method
-    when 'gcash'
+    when "gcash"
       process_gcash_webhook(webhook_data)
-    when 'paymaya'
+    when "paymaya"
       process_paymaya_webhook(webhook_data)
     else
-      { success: false, message: 'Webhook not supported for this payment method' }
+      { success: false, message: "Webhook not supported for this payment method" }
     end
   end
 
   def verify_payment_status
     # Verify payment status with gateway
     case payment.payment_method
-    when 'gcash'
+    when "gcash"
       verify_gcash_status
-    when 'paymaya'
+    when "paymaya"
       verify_paymaya_status
-    when 'bank_transfer'
+    when "bank_transfer"
       verify_bank_transfer_status
     else
-      { success: false, message: 'Status verification not available for this method' }
+      { success: false, message: "Status verification not available for this method" }
     end
   end
 
   def refund_payment(reason = nil)
-    return { success: false, message: 'Payment not completed' } unless payment.completed?
+    return { success: false, message: "Payment not completed" } unless payment.completed?
 
     case payment.payment_method
-    when 'gcash', 'paymaya'
+    when "gcash", "paymaya"
       process_gateway_refund(reason)
-    when 'bank_transfer'
+    when "bank_transfer"
       process_bank_refund(reason)
     else
       # Manual refund process
       payment.refund_payment!(reason)
-      { success: true, message: 'Manual refund initiated' }
+      { success: true, message: "Manual refund initiated" }
     end
   end
 
@@ -75,38 +75,38 @@ class PaymentProcessingService
     begin
       # Simulate GCash API call
       response = simulate_gcash_api_call
-      
+
       if response[:success]
         payment.update!(
           payment_metadata: payment.payment_metadata.merge({
             gateway_reference: response[:reference_number],
-            gateway_status: 'pending',
+            gateway_status: "pending",
             gateway_response: response
           })
         )
-        
-        { success: true, message: 'Payment initiated with GCash', reference: response[:reference_number] }
+
+        { success: true, message: "Payment initiated with GCash", reference: response[:reference_number] }
       else
         payment.fail_payment!(response[:message])
         { success: false, message: response[:message] }
       end
     rescue StandardError => e
       payment.fail_payment!("GCash API Error: #{e.message}")
-      { success: false, message: 'Payment processing failed' }
+      { success: false, message: "Payment processing failed" }
     end
   end
 
   def process_gcash_webhook(webhook_data)
     # Process GCash webhook
-    case webhook_data['status']
-    when 'COMPLETED'
+    case webhook_data["status"]
+    when "COMPLETED"
       payment.complete_payment!
-      { success: true, message: 'Payment completed via GCash' }
-    when 'FAILED'
-      payment.fail_payment!(webhook_data['failure_reason'])
-      { success: false, message: 'GCash payment failed' }
+      { success: true, message: "Payment completed via GCash" }
+    when "FAILED"
+      payment.fail_payment!(webhook_data["failure_reason"])
+      { success: false, message: "GCash payment failed" }
     else
-      { success: false, message: 'Unknown webhook status' }
+      { success: false, message: "Unknown webhook status" }
     end
   end
 
@@ -114,16 +114,16 @@ class PaymentProcessingService
     # Simulate GCash status check
     begin
       response = simulate_gcash_status_check
-      
+
       case response[:status]
-      when 'COMPLETED'
+      when "COMPLETED"
         payment.complete_payment! unless payment.completed?
-        { success: true, status: 'completed' }
-      when 'FAILED'
+        { success: true, status: "completed" }
+      when "FAILED"
         payment.fail_payment!(response[:failure_reason]) unless payment.failed?
-        { success: false, status: 'failed' }
+        { success: false, status: "failed" }
       else
-        { success: true, status: 'pending' }
+        { success: true, status: "pending" }
       end
     rescue StandardError => e
       { success: false, message: "Status check failed: #{e.message}" }
@@ -135,38 +135,38 @@ class PaymentProcessingService
     begin
       # Simulate PayMaya API call
       response = simulate_paymaya_api_call
-      
+
       if response[:success]
         payment.update!(
           payment_metadata: payment.payment_metadata.merge({
             gateway_reference: response[:payment_id],
-            gateway_status: 'pending',
+            gateway_status: "pending",
             gateway_response: response
           })
         )
-        
-        { success: true, message: 'Payment initiated with PayMaya', reference: response[:payment_id] }
+
+        { success: true, message: "Payment initiated with PayMaya", reference: response[:payment_id] }
       else
         payment.fail_payment!(response[:message])
         { success: false, message: response[:message] }
       end
     rescue StandardError => e
       payment.fail_payment!("PayMaya API Error: #{e.message}")
-      { success: false, message: 'Payment processing failed' }
+      { success: false, message: "Payment processing failed" }
     end
   end
 
   def process_paymaya_webhook(webhook_data)
     # Process PayMaya webhook
-    case webhook_data['attributes']['status']
-    when 'PAYMENT_SUCCESS'
+    case webhook_data["attributes"]["status"]
+    when "PAYMENT_SUCCESS"
       payment.complete_payment!
-      { success: true, message: 'Payment completed via PayMaya' }
-    when 'PAYMENT_FAILED'
-      payment.fail_payment!(webhook_data['attributes']['failure_reason'])
-      { success: false, message: 'PayMaya payment failed' }
+      { success: true, message: "Payment completed via PayMaya" }
+    when "PAYMENT_FAILED"
+      payment.fail_payment!(webhook_data["attributes"]["failure_reason"])
+      { success: false, message: "PayMaya payment failed" }
     else
-      { success: false, message: 'Unknown webhook status' }
+      { success: false, message: "Unknown webhook status" }
     end
   end
 
@@ -174,16 +174,16 @@ class PaymentProcessingService
     # Simulate PayMaya status check
     begin
       response = simulate_paymaya_status_check
-      
+
       case response[:status]
-      when 'PAYMENT_SUCCESS'
+      when "PAYMENT_SUCCESS"
         payment.complete_payment! unless payment.completed?
-        { success: true, status: 'completed' }
-      when 'PAYMENT_FAILED'
+        { success: true, status: "completed" }
+      when "PAYMENT_FAILED"
         payment.fail_payment!(response[:failure_reason]) unless payment.failed?
-        { success: false, status: 'failed' }
+        { success: false, status: "failed" }
       else
-        { success: true, status: 'pending' }
+        { success: true, status: "pending" }
       end
     rescue StandardError => e
       { success: false, message: "Status check failed: #{e.message}" }
@@ -200,23 +200,23 @@ class PaymentProcessingService
         verification_required: true
       })
     )
-    
-    { 
-      success: true, 
-      message: 'Bank transfer instructions generated',
-      instructions: bank_transfer_instructions 
+
+    {
+      success: true,
+      message: "Bank transfer instructions generated",
+      instructions: bank_transfer_instructions
     }
   end
 
   def verify_bank_transfer_status
     # Manual verification process - would typically be done by admin
-    { success: true, status: 'pending_verification', message: 'Manual verification required' }
+    { success: true, status: "pending_verification", message: "Manual verification required" }
   end
 
   def process_bank_refund(reason)
     # Manual bank refund process
     payment.refund_payment!(reason)
-    { success: true, message: 'Bank refund will be processed manually within 3-5 business days' }
+    { success: true, message: "Bank refund will be processed manually within 3-5 business days" }
   end
 
   # Cash Payment
@@ -225,14 +225,14 @@ class PaymentProcessingService
     payment.update!(
       payment_metadata: payment.payment_metadata.merge({
         payment_locations: cash_payment_locations,
-        instructions: 'Visit any of our partner locations to complete cash payment'
+        instructions: "Visit any of our partner locations to complete cash payment"
       })
     )
-    
-    { 
-      success: true, 
-      message: 'Cash payment instructions generated',
-      locations: cash_payment_locations 
+
+    {
+      success: true,
+      message: "Cash payment instructions generated",
+      locations: cash_payment_locations
     }
   end
 
@@ -240,18 +240,18 @@ class PaymentProcessingService
   def process_online_banking
     # Simulate online banking redirect
     redirect_url = generate_banking_redirect_url
-    
+
     payment.update!(
       payment_metadata: payment.payment_metadata.merge({
         redirect_url: redirect_url,
         expires_at: 30.minutes.from_now
       })
     )
-    
-    { 
-      success: true, 
-      message: 'Online banking redirect generated',
-      redirect_url: redirect_url 
+
+    {
+      success: true,
+      message: "Online banking redirect generated",
+      redirect_url: redirect_url
     }
   end
 
@@ -260,12 +260,12 @@ class PaymentProcessingService
     begin
       # Simulate refund API call
       response = simulate_refund_api_call(reason)
-      
+
       if response[:success]
         payment.refund_payment!(reason)
-        { success: true, message: 'Refund processed successfully' }
+        { success: true, message: "Refund processed successfully" }
       else
-        { success: false, message: 'Refund processing failed' }
+        { success: false, message: "Refund processing failed" }
       end
     rescue StandardError => e
       { success: false, message: "Refund failed: #{e.message}" }
@@ -279,12 +279,12 @@ class PaymentProcessingService
       {
         success: true,
         reference_number: "GC#{Time.current.to_i}#{rand(1000..9999)}",
-        status: 'pending'
+        status: "pending"
       }
     else
       {
         success: false,
-        message: 'Insufficient funds'
+        message: "Insufficient funds"
       }
     end
   end
@@ -295,35 +295,35 @@ class PaymentProcessingService
       {
         success: true,
         payment_id: "PM#{Time.current.to_i}#{rand(1000..9999)}",
-        status: 'pending'
+        status: "pending"
       }
     else
       {
         success: false,
-        message: 'Card declined'
+        message: "Card declined"
       }
     end
   end
 
   def simulate_gcash_status_check
     # Simulate random status
-    statuses = ['COMPLETED', 'FAILED', 'PENDING']
+    statuses = [ "COMPLETED", "FAILED", "PENDING" ]
     status = statuses.sample(random: Random.new(payment.id))
-    
+
     {
       status: status,
-      failure_reason: status == 'FAILED' ? 'Transaction timeout' : nil
+      failure_reason: status == "FAILED" ? "Transaction timeout" : nil
     }
   end
 
   def simulate_paymaya_status_check
     # Simulate random status
-    statuses = ['PAYMENT_SUCCESS', 'PAYMENT_FAILED', 'PENDING']
+    statuses = [ "PAYMENT_SUCCESS", "PAYMENT_FAILED", "PENDING" ]
     status = statuses.sample(random: Random.new(payment.id))
-    
+
     {
       status: status,
-      failure_reason: status == 'PAYMENT_FAILED' ? 'Invalid card' : nil
+      failure_reason: status == "PAYMENT_FAILED" ? "Invalid card" : nil
     }
   end
 
@@ -337,20 +337,20 @@ class PaymentProcessingService
 
   def bank_transfer_instructions
     {
-      bank_name: 'eLMO Partner Bank',
-      account_number: '1234567890',
-      account_name: 'eLMO Payments Inc.',
+      bank_name: "eLMO Partner Bank",
+      account_number: "1234567890",
+      account_name: "eLMO Payments Inc.",
       reference: payment.payment_reference,
       amount: payment.amount,
-      instructions: 'Include payment reference in the transfer details'
+      instructions: "Include payment reference in the transfer details"
     }
   end
 
   def cash_payment_locations
     [
-      { name: '7-Eleven', address: 'Various locations nationwide' },
-      { name: 'Bayad Center', address: 'SM Malls and other locations' },
-      { name: 'M Lhuillier', address: 'Nationwide branches' }
+      { name: "7-Eleven", address: "Various locations nationwide" },
+      { name: "Bayad Center", address: "SM Malls and other locations" },
+      { name: "M Lhuillier", address: "Nationwide branches" }
     ]
   end
 

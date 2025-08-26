@@ -7,29 +7,29 @@ class LoanDisbursementJob < ApplicationJob
 
     begin
       case disbursement_method
-      when 'gcash'
+      when "gcash"
         disburse_via_gcash(loan, disbursement_account)
-      when 'paymaya'
+      when "paymaya"
         disburse_via_paymaya(loan, disbursement_account)
-      when 'bank_transfer'
+      when "bank_transfer"
         disburse_via_bank_transfer(loan, disbursement_account)
       else
         raise "Unsupported disbursement method: #{disbursement_method}"
       end
 
       loan.disburse!(disbursement_method, disbursement_account)
-      
+
       # Schedule monitoring for this loan
       DailyLoanMonitoringJob.set(wait: 1.day).perform_later(loan.id)
-      
+
       # Send confirmation notification
       LoanDisbursementNotificationJob.perform_later(loan.id)
-      
+
       Rails.logger.info "Loan #{loan.id} disbursed successfully via #{disbursement_method}"
-      
+
     rescue StandardError => e
       Rails.logger.error "Loan disbursement failed for loan #{loan.id}: #{e.message}"
-      
+
       # Update loan with disbursement failure
       loan.update!(
         approval_metadata: loan.approval_metadata.merge({
@@ -38,7 +38,7 @@ class LoanDisbursementJob < ApplicationJob
           disbursement_failure_timestamp: Time.current.iso8601
         })
       )
-      
+
       # Notify admin of failure
       AdminNotificationJob.perform_later(
         "Loan Disbursement Failed",
@@ -52,7 +52,7 @@ class LoanDisbursementJob < ApplicationJob
   def disburse_via_gcash(loan, gcash_number)
     # Simulate GCash disbursement API
     response = simulate_gcash_disbursement(loan.amount, gcash_number)
-    
+
     if response[:success]
       Rails.logger.info "GCash disbursement successful: #{response[:reference_number]}"
     else
@@ -63,7 +63,7 @@ class LoanDisbursementJob < ApplicationJob
   def disburse_via_paymaya(loan, paymaya_account)
     # Simulate PayMaya disbursement API
     response = simulate_paymaya_disbursement(loan.amount, paymaya_account)
-    
+
     if response[:success]
       Rails.logger.info "PayMaya disbursement successful: #{response[:transaction_id]}"
     else
@@ -74,7 +74,7 @@ class LoanDisbursementJob < ApplicationJob
   def disburse_via_bank_transfer(loan, bank_account)
     # Simulate bank transfer disbursement
     response = simulate_bank_disbursement(loan.amount, bank_account)
-    
+
     if response[:success]
       Rails.logger.info "Bank transfer disbursement successful: #{response[:transfer_id]}"
     else

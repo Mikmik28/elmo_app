@@ -10,7 +10,7 @@ class CompleteAutomaticPaymentJob < ApplicationJob
       payment.complete_payment!
       Rails.logger.info "Automatic payment #{payment.id} completed successfully"
     else
-      payment.fail_payment!('Automatic payment failed - insufficient funds')
+      payment.fail_payment!("Automatic payment failed - insufficient funds")
       Rails.logger.info "Automatic payment #{payment.id} failed"
     end
   end

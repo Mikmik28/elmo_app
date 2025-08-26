@@ -9,7 +9,7 @@ class LoanDisbursementNotificationJob < ApplicationJob
               "Your payment of ₱#{loan.total_amount_due.to_i} is due on #{loan.due_date.strftime('%B %d, %Y')}."
 
     send_sms(user.phone_number, message)
-    
+
     Rails.logger.info "Sent disbursement notification for loan #{loan.id} to user #{user.id}"
   end
 

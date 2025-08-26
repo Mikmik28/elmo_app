@@ -12,7 +12,7 @@ class CreatePayments < ActiveRecord::Migration[8.0]
       t.timestamps
     end
 
-    add_index :payments, [:loan_id, :status]
+    add_index :payments, [ :loan_id, :status ]
     add_index :payments, :payment_reference
   end
 end

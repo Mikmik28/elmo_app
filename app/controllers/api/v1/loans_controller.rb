@@ -1,9 +1,9 @@
 class Api::V1::LoansController < Api::V1::BaseController
-  before_action :set_loan, only: [:show]
+  before_action :set_loan, only: [ :show ]
 
   def index
     @loans = current_user.loans.order(created_at: :desc)
-    
+
     loans_data = @loans.map do |loan|
       {
         id: loan.id,
@@ -63,7 +63,7 @@ class Api::V1::LoansController < Api::V1::BaseController
 
   def create
     unless current_user.can_apply_for_loan?
-      render_error('You are not eligible to apply for a new loan at this time.')
+      render_error("You are not eligible to apply for a new loan at this time.")
       return
     end
 
@@ -72,7 +72,7 @@ class Api::V1::LoansController < Api::V1::BaseController
     if @loan.save
       # Queue loan for approval processing
       LoanApprovalJob.perform_later(@loan.id)
-      
+
       loan_data = {
         id: @loan.id,
         amount: @loan.amount,
@@ -81,10 +81,10 @@ class Api::V1::LoansController < Api::V1::BaseController
         loan_type: @loan.loan_type,
         created_at: @loan.created_at
       }
-      
-      render_success({ loan: loan_data }, 'Loan application submitted successfully')
+
+      render_success({ loan: loan_data }, "Loan application submitted successfully")
     else
-      render_error(@loan.errors.full_messages.join(', '))
+      render_error(@loan.errors.full_messages.join(", "))
     end
   end
 
@@ -92,10 +92,10 @@ class Api::V1::LoansController < Api::V1::BaseController
     # Calculate loan details without creating the loan
     amount = params[:amount].to_f
     term_days = params[:term_days].to_i
-    loan_type = params[:loan_type] || 'personal'
+    loan_type = params[:loan_type] || "personal"
 
     if amount <= 0 || term_days <= 0
-      render_error('Invalid amount or term days')
+      render_error("Invalid amount or term days")
       return
     end
 
@@ -117,7 +117,7 @@ class Api::V1::LoansController < Api::V1::BaseController
       total_amount_due: total_amount_due.round(2),
       due_date: due_date,
       daily_payment: (total_amount_due / term_days).round(2),
-      approval_likelihood: decision[:approved] ? 'high' : 'low',
+      approval_likelihood: decision[:approved] ? "high" : "low",
       recommended_amount: decision[:recommended_amount],
       risk_level: decision[:risk_level]
     }
@@ -130,7 +130,7 @@ class Api::V1::LoansController < Api::V1::BaseController
   def set_loan
     @loan = current_user.loans.find(params[:id])
   rescue ActiveRecord::RecordNotFound
-    render_error('Loan not found', :not_found)
+    render_error("Loan not found", :not_found)
   end
 
   def loan_params

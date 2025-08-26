@@ -23,11 +23,11 @@ class LoanApprovalJob < ApplicationJob
 
   def approve_loan(loan, decision)
     loan.update!(
-      status: 'approved',
+      status: "approved",
       approved_at: Time.current,
       interest_rate: decision[:interest_rate],
       approval_metadata: {
-        approved_by: 'automated_system',
+        approved_by: "automated_system",
         credit_score_at_approval: decision[:credit_score],
         risk_level: decision[:risk_level],
         recommended_amount: decision[:recommended_amount],
@@ -43,9 +43,9 @@ class LoanApprovalJob < ApplicationJob
 
   def reject_loan(loan, decision)
     loan.update!(
-      status: 'rejected',
+      status: "rejected",
       approval_metadata: {
-        rejected_by: 'automated_system',
+        rejected_by: "automated_system",
         rejection_reasons: decision[:reasons],
         credit_score_at_rejection: decision[:credit_score],
         risk_level: decision[:risk_level],

@@ -1,6 +1,6 @@
 class PaymentsController < ApplicationController
   before_action :set_loan
-  before_action :set_payment, only: [:show, :update, :cancel]
+  before_action :set_payment, only: [ :show, :update, :cancel ]
 
   def index
     @payments = @loan.payments.order(created_at: :desc)
@@ -22,8 +22,8 @@ class PaymentsController < ApplicationController
     if @payment.save
       # Process payment
       PaymentProcessingJob.perform_later(@payment.id)
-      
-      redirect_to [@loan, @payment], notice: 'Payment initiated successfully. You will be notified once processed.'
+
+      redirect_to [ @loan, @payment ], notice: "Payment initiated successfully. You will be notified once processed."
     else
       @remaining_balance = @loan.remaining_balance
       @minimum_payment = calculate_minimum_payment
@@ -35,24 +35,24 @@ class PaymentsController < ApplicationController
     # For updating payment status (admin only or webhook)
     if params[:status].present? && valid_status_update?
       case params[:status]
-      when 'completed'
+      when "completed"
         @payment.complete_payment!
-        flash[:notice] = 'Payment marked as completed.'
-      when 'failed'
+        flash[:notice] = "Payment marked as completed."
+      when "failed"
         @payment.fail_payment!(params[:failure_reason])
-        flash[:alert] = 'Payment marked as failed.'
+        flash[:alert] = "Payment marked as failed."
       end
     end
 
-    redirect_to [@loan, @payment]
+    redirect_to [ @loan, @payment ]
   end
 
   def cancel
     if @payment.pending?
-      @payment.update!(status: 'cancelled')
-      redirect_to [@loan, @payment], notice: 'Payment cancelled successfully.'
+      @payment.update!(status: "cancelled")
+      redirect_to [ @loan, @payment ], notice: "Payment cancelled successfully."
     else
-      redirect_to [@loan, @payment], alert: 'Cannot cancel payment in current status.'
+      redirect_to [ @loan, @payment ], alert: "Cannot cancel payment in current status."
     end
   end
 
@@ -61,18 +61,18 @@ class PaymentsController < ApplicationController
     # This would handle webhooks from payment gateways
     payment_reference = params[:payment_reference]
     payment = Payment.find_by(payment_reference: payment_reference)
-    
+
     if payment
       service = PaymentProcessingService.new(payment)
       result = service.process_webhook(params.to_unsafe_h)
-      
+
       if result[:success]
-        render json: { status: 'success' }, status: 200
+        render json: { status: "success" }, status: 200
       else
-        render json: { status: 'error', message: result[:message] }, status: 400
+        render json: { status: "error", message: result[:message] }, status: 400
       end
     else
-      render json: { status: 'error', message: 'Payment not found' }, status: 404
+      render json: { status: "error", message: "Payment not found" }, status: 404
     end
   end
 
@@ -92,11 +92,11 @@ class PaymentsController < ApplicationController
 
   def calculate_minimum_payment
     # Minimum payment is 10% of remaining balance or 500, whichever is higher
-    [@loan.remaining_balance * 0.10, 500].max
+    [ @loan.remaining_balance * 0.10, 500 ].max
   end
 
   def valid_status_update?
     # Only allow admin users or system to update payment status
-    current_user.admin? || request.headers['X-System-Update'] == 'true'
+    current_user.admin? || request.headers["X-System-Update"] == "true"
   end
 end

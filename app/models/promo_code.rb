@@ -14,15 +14,15 @@ class PromoCode < ApplicationRecord
 
   # Enums
   enum :promo_type, {
-    discount: 'discount',
-    credit_bonus: 'credit_bonus',
-    interest_reduction: 'interest_reduction',
-    fee_waiver: 'fee_waiver'
+    discount: "discount",
+    credit_bonus: "credit_bonus",
+    interest_reduction: "interest_reduction",
+    fee_waiver: "fee_waiver"
   }
 
   # Scopes
   scope :active, -> { where(active: true) }
-  scope :available, -> { active.where('valid_from <= ? AND valid_until >= ?', Date.current, Date.current) }
+  scope :available, -> { active.where("valid_from <= ? AND valid_until >= ?", Date.current, Date.current) }
   scope :unlimited, -> { where(usage_limit: nil) }
   scope :limited, -> { where.not(usage_limit: nil) }
 
@@ -32,8 +32,8 @@ class PromoCode < ApplicationRecord
   end
 
   def currently_valid?
-    active? && 
-    Date.current >= valid_from && 
+    active? &&
+    Date.current >= valid_from &&
     Date.current <= valid_until
   end
 
@@ -43,21 +43,21 @@ class PromoCode < ApplicationRecord
 
   def can_be_used_by?(user)
     return false unless currently_valid? && usage_available?
-    
+
     # Check conditions if any
     return true if conditions.blank?
-    
+
     conditions.all? do |condition, value|
       case condition
-      when 'min_credit_score'
+      when "min_credit_score"
         user.credit_score >= value
-      when 'max_previous_loans'
+      when "max_previous_loans"
         user.loans.count <= value
-      when 'employment_status'
+      when "employment_status"
         user.employment_status == value
-      when 'kyc_verified'
+      when "kyc_verified"
         user.kyc_verified == value
-      when 'user_status'
+      when "user_status"
         user.status == value
       else
         true
@@ -66,41 +66,41 @@ class PromoCode < ApplicationRecord
   end
 
   def apply_to_loan(loan)
-    return { success: false, message: 'Promo code not valid' } unless can_be_used_by?(loan.user)
-    
+    return { success: false, message: "Promo code not valid" } unless can_be_used_by?(loan.user)
+
     case promo_type
-    when 'discount'
+    when "discount"
       apply_discount(loan)
-    when 'credit_bonus'
+    when "credit_bonus"
       apply_credit_bonus(loan.user)
-    when 'interest_reduction'
+    when "interest_reduction"
       apply_interest_reduction(loan)
-    when 'fee_waiver'
+    when "fee_waiver"
       apply_fee_waiver(loan)
     end
   end
 
   def apply_to_user(user)
-    return { success: false, message: 'Promo code not valid' } unless can_be_used_by?(user)
-    
+    return { success: false, message: "Promo code not valid" } unless can_be_used_by?(user)
+
     case promo_type
-    when 'credit_bonus'
+    when "credit_bonus"
       apply_credit_bonus(user)
     else
-      { success: false, message: 'This promo code cannot be applied to user account' }
+      { success: false, message: "This promo code cannot be applied to user account" }
     end
   end
 
   def use!
     increment!(:used_count)
-    
+
     # Deactivate if usage limit reached
     update!(active: false) if usage_limit.present? && used_count >= usage_limit
   end
 
   def remaining_uses
     return Float::INFINITY if usage_limit.nil?
-    [usage_limit - used_count, 0].max
+    [ usage_limit - used_count, 0 ].max
   end
 
   def usage_percentage
@@ -116,23 +116,23 @@ class PromoCode < ApplicationRecord
 
   def valid_date_range
     return unless valid_from.present? && valid_until.present?
-    
-    errors.add(:valid_until, 'must be after valid from date') if valid_until < valid_from
+
+    errors.add(:valid_until, "must be after valid from date") if valid_until < valid_from
   end
 
   def valid_promo_configuration
     case promo_type
-    when 'discount'
+    when "discount"
       if discount_percentage.blank? && discount_amount.blank?
-        errors.add(:base, 'Discount promo must have either percentage or amount')
+        errors.add(:base, "Discount promo must have either percentage or amount")
       end
-    when 'credit_bonus'
+    when "credit_bonus"
       if bonus_credit.blank?
-        errors.add(:bonus_credit, 'Credit bonus promo must have bonus credit amount')
+        errors.add(:bonus_credit, "Credit bonus promo must have bonus credit amount")
       end
-    when 'interest_reduction'
+    when "interest_reduction"
       if discount_percentage.blank?
-        errors.add(:discount_percentage, 'Interest reduction promo must have discount percentage')
+        errors.add(:discount_percentage, "Interest reduction promo must have discount percentage")
       end
     end
   end
@@ -141,9 +141,9 @@ class PromoCode < ApplicationRecord
     if discount_percentage.present?
       discount = loan.amount * (discount_percentage / 100.0)
     else
-      discount = [discount_amount, loan.amount].min
+      discount = [ discount_amount, loan.amount ].min
     end
-    
+
     new_amount = loan.amount - discount
     loan.update!(
       amount: new_amount,
@@ -153,14 +153,14 @@ class PromoCode < ApplicationRecord
         discount_applied: discount
       })
     )
-    
+
     use!
     { success: true, message: "Discount of ₱#{discount.round(2)} applied", discount: discount }
   end
 
   def apply_credit_bonus(user)
     user.increment!(:credit_limit, bonus_credit)
-    
+
     use!
     { success: true, message: "Credit bonus of ₱#{bonus_credit} added to your account", bonus: bonus_credit }
   end
@@ -168,7 +168,7 @@ class PromoCode < ApplicationRecord
   def apply_interest_reduction(loan)
     reduction = loan.interest_rate * (discount_percentage / 100.0)
     new_rate = loan.interest_rate - reduction
-    
+
     loan.update!(
       interest_rate: new_rate,
       approval_metadata: (loan.approval_metadata || {}).merge({
@@ -177,7 +177,7 @@ class PromoCode < ApplicationRecord
         interest_reduction: reduction
       })
     )
-    
+
     use!
     { success: true, message: "Interest rate reduced by #{discount_percentage}%", reduction: reduction }
   end
@@ -190,7 +190,7 @@ class PromoCode < ApplicationRecord
         fees_waived: true
       })
     )
-    
+
     use!
     { success: true, message: "Processing fees waived" }
   end

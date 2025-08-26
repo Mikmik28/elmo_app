@@ -20,7 +20,7 @@ class CreateLoans < ActiveRecord::Migration[8.0]
       t.timestamps
     end
 
-    add_index :loans, [:user_id, :status]
+    add_index :loans, [ :user_id, :status ]
     add_index :loans, :status
     add_index :loans, :due_date
   end

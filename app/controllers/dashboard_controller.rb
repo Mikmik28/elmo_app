@@ -6,7 +6,7 @@ class DashboardController < ApplicationController
     @credit_score = @user.credit_score
     @available_credit = @user.eligible_loan_amount
     @total_outstanding = @user.total_outstanding
-    
+
     # Statistics for dashboard
     @stats = {
       total_borrowed: @user.total_borrowed,
@@ -19,14 +19,14 @@ class DashboardController < ApplicationController
   private
 
   def calculate_on_time_payments
-    total_completed = @user.loans.where(status: 'paid').count
+    total_completed = @user.loans.where(status: "paid").count
     return 0 if total_completed.zero?
-    
+
     on_time = @user.loans.joins(:payments)
-                   .where(payments: { status: 'completed' })
-                   .where('payments.paid_at <= loans.due_date')
+                   .where(payments: { status: "completed" })
+                   .where("payments.paid_at <= loans.due_date")
                    .count
-    
+
     ((on_time.to_f / total_completed) * 100).round
   end
 

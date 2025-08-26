@@ -7,18 +7,18 @@ class Api::V1::BaseController < ApplicationController
   private
 
   def authenticate_api_user!
-    token = request.headers['Authorization']&.split(' ')&.last
-    
+    token = request.headers["Authorization"]&.split(" ")&.last
+
     if token.blank?
-      render json: { error: 'Missing authorization token' }, status: :unauthorized
+      render json: { error: "Missing authorization token" }, status: :unauthorized
       return
     end
 
     # Simple token-based authentication (you might want to use JWT)
     @current_user = User.find_by(authentication_token: token)
-    
+
     unless @current_user
-      render json: { error: 'Invalid authorization token' }, status: :unauthorized
+      render json: { error: "Invalid authorization token" }, status: :unauthorized
     end
   end
 
@@ -27,15 +27,15 @@ class Api::V1::BaseController < ApplicationController
   end
 
   def render_error(message, status = :unprocessable_entity)
-    render json: { 
+    render json: {
       error: message,
-      status: 'error'
+      status: "error"
     }, status: status
   end
 
-  def render_success(data = {}, message = 'Success')
+  def render_success(data = {}, message = "Success")
     render json: {
-      status: 'success',
+      status: "success",
       message: message,
       data: data
     }
