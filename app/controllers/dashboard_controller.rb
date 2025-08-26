@@ -21,12 +21,12 @@ class DashboardController < ApplicationController
   def calculate_on_time_payments
     total_payments = @user.payments.completed.count
     return 95 if total_payments.zero? # Default good score for new users
-    
+
     on_time = @user.payments.completed
                    .joins(:loan)
-                   .where('payments.paid_at <= loans.due_date')
+                   .where("payments.paid_at <= loans.due_date")
                    .count
-    
+
     ((on_time.to_f / total_payments) * 100).round
   end
 
