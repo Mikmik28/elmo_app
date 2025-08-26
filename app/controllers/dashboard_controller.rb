@@ -2,7 +2,7 @@ class DashboardController < ApplicationController
   # Constants for loan calculations
   MICRO_LOAN_TERM_DAYS = 60
   DAYS_PER_MONTH = 30.0
-  
+
   def index
     @user = current_user
     @active_loans = @user.active_loans.includes(:payments)
