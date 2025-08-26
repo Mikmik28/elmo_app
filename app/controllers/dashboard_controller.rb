@@ -15,7 +15,7 @@ class DashboardController < ApplicationController
       next_due_date: next_payment_due_date,
       next_payment_amount: next_payment_amount
     }
-    
+
     # Get the most urgent loan for payment actions
     @priority_loan = most_urgent_loan
   end
@@ -41,7 +41,7 @@ class DashboardController < ApplicationController
   def next_payment_amount
     next_loan = @active_loans.where("due_date IS NOT NULL").order(:due_date).first
     return 0 unless next_loan
-    
+
     # Calculate monthly payment amount (simplified calculation)
     # In a real app, this would be based on loan amortization schedule
     (next_loan.remaining_balance / next_loan.term_months).round
@@ -50,10 +50,10 @@ class DashboardController < ApplicationController
   def most_urgent_loan
     # Prioritize loans by: overdue -> due soon -> highest interest rate
     @active_loans.order(
-      Arel.sql("CASE 
-        WHEN due_date < CURRENT_DATE THEN 1 
-        WHEN due_date <= CURRENT_DATE + INTERVAL '7 days' THEN 2 
-        ELSE 3 
+      Arel.sql("CASE
+        WHEN due_date < CURRENT_DATE THEN 1
+        WHEN due_date <= CURRENT_DATE + INTERVAL '7 days' THEN 2
+        ELSE 3
       END"),
       "interest_rate DESC",
       :due_date
