@@ -18,39 +18,81 @@
     <link rel="apple-touch-icon" href="/icon.png">
 
     <%# Includes all stylesheet files in app/assets/stylesheets %>
-    <%= stylesheet_link_tag :app, "data-turbo-track": "reload" %>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: {
+                            50: '#f0f9ff',
+                            100: '#e0f2fe',
+                            500: '#0ea5e9',
+                            600: '#0284c7',
+                            700: '#0369a1'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        .card-hover {
+            transition: all 0.3s ease;
+        }
+        .card-hover:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+        }
+    </style>
+    <%= stylesheet_link_tag "application", "data-turbo-track": "reload" %>
     <%= javascript_importmap_tags %>
   </head>
 
   <body class="bg-gray-50">
     <div class="min-h-screen">
       <% if user_signed_in? %>
-        <!-- Navigation -->
-        <nav class="bg-blue-600 text-white shadow-lg">
-          <div class="max-w-7xl mx-auto px-4">
-            <div class="flex justify-between items-center py-4">
+        <!-- Modern Header -->
+        <header class="bg-white shadow-sm border-b border-gray-200">
+          <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
               <div class="flex items-center">
-                <%= link_to root_path, class: "text-2xl font-bold" do %>
-                  eLMO
+                <%= link_to root_path, class: "text-2xl font-bold text-gray-900" do %>
+                  ELMO Finance
                 <% end %>
               </div>
               
-              <div class="hidden md:flex space-x-6">
-                <%= link_to "Dashboard", root_path, class: "hover:text-blue-200" %>
-                <%= link_to "My Loans", loans_path, class: "hover:text-blue-200" %>
-                <%= link_to "Apply for Loan", new_loan_path, class: "hover:text-blue-200" %>
+              <div class="hidden md:flex space-x-8">
+                <%= link_to root_path, class: "text-gray-600 hover:text-gray-900 px-3 py-2 text-sm font-medium" do %>
+                  Dashboard
+                <% end %>
+                <%= link_to loans_path, class: "text-gray-600 hover:text-gray-900 px-3 py-2 text-sm font-medium" do %>
+                  My Loans
+                <% end %>
+                <%= link_to new_loan_path, class: "text-gray-600 hover:text-gray-900 px-3 py-2 text-sm font-medium" do %>
+                  Apply for Loan
+                <% end %>
               </div>
               
               <div class="flex items-center space-x-4">
-                <span class="text-sm">
+                <span class="text-sm text-gray-600">
                   Hello, <%= current_user.first_name %>
                 </span>
-                <%= link_to "Logout", destroy_user_session_path, method: :delete, 
-                    class: "bg-blue-700 hover:bg-blue-800 px-3 py-1 rounded text-sm" %>
+                <div class="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center">
+                  <span class="text-white text-sm font-medium">
+                    <%= current_user.first_name[0].upcase %><%= current_user.last_name&.first&.upcase %>
+                  </span>
+                </div>
+                <%= link_to destroy_user_session_path, method: :delete, 
+                    class: "text-gray-600 hover:text-gray-900 text-sm" do %>
+                  <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path>
+                  </svg>
+                <% end %>
               </div>
             </div>
           </div>
-        </nav>
+        </header>
       <% end %>
 
       <!-- Flash Messages -->
@@ -67,7 +109,7 @@
       <% end %>
 
       <!-- Main Content -->
-      <main class="<%= user_signed_in? ? 'container mx-auto mt-8 px-5' : 'container mx-auto mt-28 px-5 flex' %>">
+      <main class="<%= user_signed_in? ? 'max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8' : 'container mx-auto mt-28 px-5 flex' %>">
         <%= yield %>
       </main>
     </div>
