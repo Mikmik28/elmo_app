@@ -27,7 +27,8 @@ class DashboardController < ApplicationController
     return 0 if total_payments.zero? # Neutral score for new users with no payment history
 
     on_time = @user.payments.completed
-                   .where("payments.paid_at <= payments.due_date")
+                   .joins(:loan)
+                   .where("payments.paid_at <= loans.due_date")
                    .count
 
     ((on_time.to_f / total_payments) * 100).round
@@ -41,9 +42,21 @@ class DashboardController < ApplicationController
     next_loan = @active_loans.where("due_date IS NOT NULL").order(:due_date).first
     return 0 unless next_loan
 
-    # Calculate monthly payment amount (simplified calculation)
-    # In a real app, this would be based on loan amortization schedule
-    (next_loan.remaining_balance / next_loan.term_months).round
+    # Calculate payment amount based on loan term and type
+    # Convert term_days to appropriate payment periods
+    if next_loan.term_days && next_loan.term_days > 0
+      # For loans <= 60 days, use the full balance (micro loans)
+      if next_loan.term_days <= 60
+        next_loan.remaining_balance.round
+      else
+        # For longer terms, calculate monthly payments
+        term_months = (next_loan.term_days / 30.0).ceil
+        (next_loan.remaining_balance / term_months).round
+      end
+    else
+      # Fallback if term_days is not available
+      next_loan.remaining_balance.round
+    end
   end
 
   def most_urgent_loan
