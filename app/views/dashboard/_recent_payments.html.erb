@@ -1,0 +1,17 @@
+<!-- Recent Payments -->
+<div class="bg-white rounded-xl shadow-sm border border-gray-100">
+  <div class="p-6 border-b border-gray-200">
+    <h3 class="text-lg font-semibold text-gray-900">Recent Payments</h3>
+  </div>
+  <% if recent_payments.any? %>
+    <div class="p-6">
+      <div class="space-y-4">
+        <% recent_payments.each do |payment| %>
+          <%= render 'dashboard/payment_item', payment: payment %>
+        <% end %>
+      </div>
+    </div>
+  <% else %>
+    <%= render 'dashboard/empty_payments' %>
+  <% end %>
+</div>
