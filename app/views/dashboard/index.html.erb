@@ -34,7 +34,13 @@
     </div>
     <h3 class="text-sm font-medium text-gray-600 mb-1">Credit Score</h3>
     <p class="text-3xl font-bold text-gray-900"><%= @credit_score %></p>
-    <p class="text-sm text-green-600 mt-2">↗ +12 this month</p>
+    <p class="text-sm <%= @stats[:credit_score_change] >= 0 ? 'text-green-600' : 'text-red-600' %> mt-2">
+      <% if @stats[:credit_score_change].present? %>
+        <%= @stats[:credit_score_change] > 0 ? "↗ +#{@stats[:credit_score_change]}" : "↘ #{@stats[:credit_score_change]}" %> this month
+      <% else %>
+        <span class="text-gray-400">No data for this month</span>
+      <% end %>
+    </p>
   </div>
 
   <!-- Available Credit Card -->
