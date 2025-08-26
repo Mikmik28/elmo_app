@@ -79,7 +79,7 @@
     </div>
     <h3 class="text-sm font-medium text-gray-600 mb-1">Next Payment</h3>
     <% if @stats[:next_due_date] %>
-      <p class="text-3xl font-bold text-gray-900">₱2,500</p>
+      <p class="text-3xl font-bold text-gray-900">₱<%= number_with_delimiter(@stats[:next_payment_amount].to_i) %></p>
       <p class="text-sm text-gray-500 mt-2">Due <%= @stats[:next_due_date].strftime("%b %d, %Y") %></p>
     <% else %>
       <p class="text-3xl font-bold text-gray-900">₱0</p>
@@ -124,7 +124,17 @@
                       </div>
                       <div>
                         <div class="text-sm font-medium text-gray-900"><%= loan.loan_type.humanize %></div>
-                        <div class="text-sm text-gray-500">12-month term</div>
+                        <div class="text-sm text-gray-500">
+                          <% if loan.term_days %>
+                            <% if loan.term_days % 30 == 0 %>
+                              <%= "#{loan.term_days / 30}-month term" %>
+                            <% else %>
+                              <%= "#{loan.term_days}-day term" %>
+                            <% end %>
+                          <% else %>
+                            <span class="text-gray-400">Term not specified</span>
+                          <% end %>
+                        </div>
                       </div>
                     </div>
                   </td>
@@ -264,7 +274,7 @@
           <span>View All Loans</span>
         <% end %>
         <% if @active_loans.any? %>
-          <%= link_to loan_payments_path(@active_loans.first), class: "w-full bg-gray-100 text-gray-700 py-3 px-4 rounded-lg hover:bg-gray-200 transition-colors flex items-center justify-center space-x-2" do %>
+          <%= link_to loan_payments_path(@priority_loan || @active_loans.min_by(&:due_date)), class: "w-full bg-gray-100 text-gray-700 py-3 px-4 rounded-lg hover:bg-gray-200 transition-colors flex items-center justify-center space-x-2" do %>
             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1"></path>
             </svg>
