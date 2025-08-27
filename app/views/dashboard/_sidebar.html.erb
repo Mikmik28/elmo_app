@@ -1,0 +1,6 @@
+<!-- Right Column - Quick Actions & Stats -->
+<div class="space-y-8">
+  <%= render 'dashboard/quick_actions', active_loans: active_loans, priority_loan: priority_loan %>
+  <%= render 'dashboard/financial_health', stats: stats, available_credit: available_credit, total_outstanding: total_outstanding %>
+  <%= render 'dashboard/achievements', stats: stats %>
+</div>

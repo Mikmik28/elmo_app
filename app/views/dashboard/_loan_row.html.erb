@@ -1,0 +1,59 @@
+<tr class="hover:bg-gray-50">
+  <td class="px-6 py-4">
+    <div class="flex items-center">
+      <div class="w-10 h-10 <%= index.even? ? 'bg-blue-100' : 'bg-green-100' %> rounded-lg flex items-center justify-center mr-3">
+        <span class="<%= index.even? ? 'text-blue-600' : 'text-green-600' %> font-semibold text-sm">#<%= loan.id %></span>
+      </div>
+      <div>
+        <div class="text-sm font-medium text-gray-900"><%= loan.loan_type.humanize %></div>
+        <div class="text-sm text-gray-500">
+          <% if loan.term_days %>
+            <% if loan.term_days % 30 == 0 %>
+              <%= "#{loan.term_days / 30}-month term" %>
+            <% else %>
+              <%= "#{number_with_precision(loan.term_days / 30.0, precision: 2)}-month term" %>
+            <% end %>
+          <% else %>
+            <span class="text-gray-400">Term not specified</span>
+          <% end %>
+        </div>
+      </div>
+    </div>
+  </td>
+  <td class="px-6 py-4 text-sm text-gray-900">₱<%= number_with_delimiter(loan.amount.to_i) %></td>
+  <td class="px-6 py-4 text-sm text-gray-900">
+    <div><%= loan.due_date.strftime("%b %d, %Y") %></div>
+    <% if loan.due_date < Date.current %>
+      <span class="text-red-600 text-xs">Overdue</span>
+    <% elsif loan.due_date <= Date.current + 7.days %>
+      <span class="text-orange-600 text-xs">Due soon</span>
+    <% else %>
+      <span class="text-green-600 text-xs"><%= distance_of_time_in_words(Date.current, loan.due_date) %> left</span>
+    <% end %>
+  </td>
+  <td class="px-6 py-4">
+    <% if loan.amount.to_f == 0 %>
+      <% progress = 0 %>
+    <% else %>
+      <% progress = ((loan.amount - loan.remaining_balance) / loan.amount.to_f * 100).round %>
+    <% end %>
+    <div class="flex items-center">
+      <div class="w-full bg-gray-200 rounded-full h-2 mr-2">
+        <div class="<%= progress >= 80 ? 'bg-green-600' : progress >= 60 ? 'bg-blue-600' : 'bg-orange-600' %> h-2 rounded-full" style="width: <%= progress %>%"></div>
+      </div>
+      <span class="text-xs text-gray-600"><%= progress %>%</span>
+    </div>
+    <div class="text-xs text-gray-500 mt-1">₱<%= number_with_delimiter(loan.remaining_balance.to_i) %> remaining</div>
+  </td>
+  <td class="px-6 py-4">
+    <% if loan.disbursed? %>
+      <%= link_to new_loan_payment_path(loan), class: "bg-blue-600 text-white px-4 py-2 rounded-lg text-sm hover:bg-blue-700 transition-colors" do %>
+        Pay Now
+      <% end %>
+    <% else %>
+      <%= link_to loan_path(loan), class: "bg-gray-100 text-gray-700 px-4 py-2 rounded-lg text-sm hover:bg-gray-200 transition-colors" do %>
+        View Details
+      <% end %>
+    <% end %>
+  </td>
+</tr>

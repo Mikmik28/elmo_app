@@ -1,0 +1,7 @@
+<!-- Key Metrics Cards -->
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+  <%= render 'dashboard/cards/credit_score_card', credit_score: credit_score, stats: stats %>
+  <%= render 'dashboard/cards/available_credit_card', available_credit: available_credit %>
+  <%= render 'dashboard/cards/outstanding_card', total_outstanding: total_outstanding, stats: stats %>
+  <%= render 'dashboard/cards/next_payment_card', stats: stats %>
+</div>

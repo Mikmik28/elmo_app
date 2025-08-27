@@ -1,0 +1,36 @@
+<div class="flex items-center justify-between py-3 border-b border-gray-100 last:border-b-0">
+  <div class="flex items-center">
+    <div class="w-10 h-10 <%= payment.status == 'completed' ? 'bg-green-100' : payment.status == 'processing' ? 'bg-blue-100' : 'bg-gray-100' %> rounded-full flex items-center justify-center mr-3">
+      <% if payment.status == 'completed' %>
+        <svg class="w-5 h-5 text-green-600" fill="currentColor" viewBox="0 0 20 20">
+          <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
+        </svg>
+      <% elsif payment.status == 'processing' %>
+        <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+        </svg>
+      <% else %>
+        <svg class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1"></path>
+        </svg>
+      <% end %>
+    </div>
+    <div>
+      <div class="text-sm font-medium text-gray-900">Loan #<%= payment.loan_id %> Payment</div>
+      <div class="text-sm text-gray-500"><%= (payment.paid_at || payment.created_at).strftime("%b %d, %Y") %></div>
+    </div>
+  </div>
+  <div class="text-right">
+    <div class="text-sm font-medium text-gray-900">₱<%= number_with_delimiter(payment.amount.to_i) %></div>
+    <div class="text-sm 
+      <%= case payment.status
+          when 'completed' then 'text-green-600'
+          when 'pending' then 'text-yellow-600'
+          when 'processing' then 'text-blue-600'
+          when 'failed' then 'text-red-600'
+          else 'text-gray-600'
+          end %>">
+      <%= payment.status.humanize %>
+    </div>
+  </div>
+</div>

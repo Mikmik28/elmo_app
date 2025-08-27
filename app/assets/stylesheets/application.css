@@ -8,3 +8,28 @@
  *
  * Consider organizing styles into separate files for maintainability.
  */
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Custom styles for dashboard components */
+.card-hover {
+    transition: all 0.3s ease;
+}
+
+.card-hover:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+}
+
+/* Primary color utilities */
+.bg-primary-50 { background-color: #f0f9ff; }
+.bg-primary-100 { background-color: #e0f2fe; }
+.bg-primary-500 { background-color: #0ea5e9; }
+.bg-primary-600 { background-color: #0284c7; }
+.bg-primary-700 { background-color: #0369a1; }
+
+.text-primary-500 { color: #0ea5e9; }
+.text-primary-600 { color: #0284c7; }
+.text-primary-700 { color: #0369a1; }
